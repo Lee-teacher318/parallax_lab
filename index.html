@@ -215,7 +215,7 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .gapread b{font-family:var(--f-mono)}
 .gapread b.pp{color:var(--accent);font-size:18px}
 #goStarA{color:#d9480f;font-weight:700}#goStarB{color:#7048e8;font-weight:700}
-#goStarA[aria-pressed="true"]{background:#d9480f;border-color:#d9480f;color:#fff}#goStarB[aria-pressed="true"]{background:#7048e8;border-color:#7048e8;color:#fff}
+#goStarA[aria-pressed="true"]{background:#d9480f;border-color:#d9480f;color:#fff}#goStarB[aria-pressed="true"]{background:#7048e8;border-color:#7048e8;color:#fff}#goStarAB{font-weight:700}
 </style>
 
 
@@ -242,10 +242,11 @@ img{max-width:100%}
     <div class="orbit-wrap">
     <canvas id="orbit" width="900" height="390" aria-label="태양, 6개월 간격의 두 관측 위치, 별, 배경별의 위치 관계 그림. 별을 좌우로 끌면 거리가, 지구를 끌면 공전 위치가 바뀜"></canvas>
       <div class="quiz" id="quiz">
-        <div class="qtext" id="qIntro"><span><b class="sA">별 A</b>를 누르면 A₁·A₂, <b class="sB">별 B</b>를 누르면 B₁·B₂가 배경별에 나타나고 별이 그 위치로 가요.</span></div>
+        <div class="qtext" id="qIntro"><span><b class="sA">별 A</b>는 A₁·A₂, <b class="sB">별 B</b>는 B₁·B₂, <b>A, B 같이 보기</b>는 둘 다 배경별에 표시해요.</span></div>
         <div class="qctl">
           <button id="goStarA" class="gostar" aria-pressed="false">별 A</button>
           <button id="goStarB" class="gostar" aria-pressed="false">별 B</button>
+          <button id="goStarAB" class="gostar" aria-pressed="false">A, B 같이 보기</button>
           <button id="dMinus" aria-label="별을 태양 쪽으로">◀</button>
           <button id="dPlus" aria-label="별을 배경별 쪽으로">▶</button>
           <button id="ruler" aria-pressed="false">길이 재기</button>
@@ -348,7 +349,7 @@ const endO=()=>{odrag=null;O.cv.style.cursor="";if(S.measure)measureUp();};
 O.cv.addEventListener("pointerup",endO);O.cv.addEventListener("pointercancel",endO);
 function odragMove(p){
   if(odrag==="guess"){setG(snapD(dOf(p.x)));return;}
-  if(odrag==="star"){let d=snapD(dOf(p.x));if(S.showAB)TARGETS.filter(T=>T.n===S.only).forEach(T=>{if(Math.abs(Math.log10(d/T.d))<0.035)d=T.d;});setD(d);}
+  if(odrag==="star"){let d=snapD(dOf(p.x));if(S.showAB)TARGETS.filter(T=>(S.only==="AB"||T.n===S.only)).forEach(T=>{if(Math.abs(Math.log10(d/T.d))<0.035)d=T.d;});setD(d);}
   else{const a=Math.atan2(-(p.x-SUN.x)/58,-(p.y-SUN.y)/RY);setPlaying(false);setMonth((a/(2*Math.PI)*12+12)%12);showNow();}
 }
 const skyStars=[];
@@ -484,7 +485,7 @@ function drawOrbit0(){
   glow(c,PA.x,PA.y,3.5,col.jan);glow(c,PB.x,PB.y,3.5,col.jul);
   c.textAlign="left";c.font=""+Math.round(14*FS)+"px "+getComputedStyle(document.body).fontFamily;
   // 배경별에 찍힌 별 A, B의 관측 위치 (제시된 시차)
-  if(S.showAB)TARGETS.filter(T=>T.n===S.only).forEach(T=>{const Tt={x:xOf(T.d),y:SUN.y},q1=hitSky(A,Tt),q2=hitSky(B,Tt),hit=S.match===T.n;
+  if(S.showAB)TARGETS.filter(T=>(S.only==="AB"||T.n===S.only)).forEach(T=>{const Tt={x:xOf(T.d),y:SUN.y},q1=hitSky(A,Tt),q2=hitSky(B,Tt),hit=S.match===T.n;
     [[q1,"₁"],[q2,"₂"]].forEach(([q,sub])=>{
       const g=c.createRadialGradient(q.x,q.y,0,q.x,q.y,16);g.addColorStop(0,"#fff6dc");g.addColorStop(.35,T.c);g.addColorStop(1,"rgba(0,0,0,0)");
       c.fillStyle=g;c.beginPath();c.arc(q.x,q.y,16,0,7);c.fill();
@@ -649,7 +650,7 @@ function updRead(){
   $("dIn").value=hide?"":fmtD(S.d);$("dSlider").value=Math.log10(S.d);
   $("dIn").disabled=hide;$("dSlider").disabled=hide;
   $("hide").checked=hide;
-  $("mystery").textContent=hide?"다른 미지의 별":"미지의 별 관측하기";$("mExit").hidden=!hide;$("hintBtn").hidden=!hide;$("qIntro").hidden=hide;$("goStarA").hidden=hide;$("goStarB").hidden=hide;$("dMinus").disabled=hide&&!S.hint;$("dPlus").disabled=hide&&!S.hint;$("mystery").setAttribute("aria-pressed",hide);
+  $("mystery").textContent=hide?"다른 미지의 별":"미지의 별 관측하기";$("mExit").hidden=!hide;$("hintBtn").hidden=!hide;$("qIntro").hidden=hide;$("goStarA").hidden=hide;$("goStarB").hidden=hide;$("goStarAB").hidden=hide;$("dMinus").disabled=hide&&!S.hint;$("dPlus").disabled=hide&&!S.hint;$("mystery").setAttribute("aria-pressed",hide);
 }
 function updMeasure(){
   const f=v=>(v>0?"+":"")+v.toFixed(Z.dec+1)+"″", cells=Math.round(Math.abs(S.m2-S.m1)/Z.minor*2)/2;
@@ -719,11 +720,13 @@ function fmtQ(p){return p>=0.1?(+p.toFixed(3)).toString():(+p.toFixed(4)).toStri
 S.showAB=false;
 $("abBtn").onclick=()=>{S.showAB=!S.showAB;$("abBtn").setAttribute("aria-pressed",S.showAB);updQuiz();};
 // 별 A / 별 B 버튼: 별을 그 위치로 바로 옮김 (A₁·A₂, B₁·B₂도 함께 표시)
-function goStar(n){const T=TARGETS.find(t=>t.n===n);S.showAB=true;S.only=n;$("goStarA").setAttribute("aria-pressed",n==="A");$("goStarB").setAttribute("aria-pressed",n==="B");setD(T.d);}
+function goStar(n){const T=TARGETS.find(t=>t.n===n);S.showAB=true;S.only=n;$("goStarA").setAttribute("aria-pressed",n==="A");$("goStarB").setAttribute("aria-pressed",n==="B");$("goStarAB").setAttribute("aria-pressed",false);setD(T.d);}
+function showBoth(){S.showAB=true;S.only="AB";["goStarA","goStarB"].forEach(i=>$(i).setAttribute("aria-pressed",false));$("goStarAB").setAttribute("aria-pressed",true);updQuiz();}
+$("goStarAB").onclick=showBoth;
 $("goStarA").onclick=()=>goStar("A");$("goStarB").onclick=()=>goStar("B");
-function updQuiz(){const r=$("qRes");if(S.hidden&&S.hint){S.match=null;const ok=Math.abs(S.g-S.d)<1e-6;r.dataset.tone=ok?"ok":"";r.innerHTML=ok?`<b>미지의 별 X의 위치를 찾았어요!</b> 두 시선이 X₁·X₂에 닿았습니다. 망원경으로 연주 시차를 재고, 거리를 구해 보세요.`:`<b>힌트</b> · 별을 끌어 두 시선이 X₁·X₂에 닿게 해 보세요.`;drawOrbit();return;}if(S.hidden){S.match=null;r.dataset.tone="";r.innerHTML=`<b>미지의 별 X</b> · 망원경에서 관측 ①, ② 위치의 별상에 표시선을 맞춰 연주 시차 p를 재고, 거리를 구해 보세요.`;drawOrbit();return;}const T=S.showAB?TARGETS.find(t=>t.n===S.only&&Math.abs(S.d-t.d)<1e-6):null;S.match=T?T.n:null;S.name=T?"별 "+T.n:null;
+function updQuiz(){const r=$("qRes");if(S.hidden&&S.hint){S.match=null;const ok=Math.abs(S.g-S.d)<1e-6;r.dataset.tone=ok?"ok":"";r.innerHTML=ok?`<b>미지의 별 X의 위치를 찾았어요!</b> 두 시선이 X₁·X₂에 닿았습니다. 망원경으로 연주 시차를 재고, 거리를 구해 보세요.`:`<b>힌트</b> · 별을 끌어 두 시선이 X₁·X₂에 닿게 해 보세요.`;drawOrbit();return;}if(S.hidden){S.match=null;r.dataset.tone="";r.innerHTML=`<b>미지의 별 X</b> · 망원경에서 관측 ①, ② 위치의 별상에 표시선을 맞춰 연주 시차 p를 재고, 거리를 구해 보세요.`;drawOrbit();return;}const T=S.showAB?TARGETS.find(t=>(S.only==="AB"||t.n===S.only)&&Math.abs(S.d-t.d)<1e-6):null;S.match=T?T.n:null;S.name=T?"별 "+T.n:null;
   if(T){r.dataset.tone="ok";r.innerHTML=`<b>별 ${T.n}의 위치를 찾았어요!</b> 두 시선이 ${T.n}₁·${T.n}₂에 닿았습니다. 망원경으로 연주 시차 p를 재고, 거리를 구해 보세요.`;}
-  else{r.dataset.tone="";r.innerHTML=S.showAB?`별을 끌어 두 시선이 <b>${S.only}₁·${S.only}₂</b>에 닿게 해 보세요`:`별을 끌어 두 시선이 배경별의 어디에 닿는지 확인하세요`;}
+  else{r.dataset.tone="";r.innerHTML=S.showAB?(S.only==="AB"?`별을 끌어 두 시선이 <b>A₁·A₂</b> 또는 <b>B₁·B₂</b>에 닿게 해 보세요`:`별을 끌어 두 시선이 <b>${S.only}₁·${S.only}₂</b>에 닿게 해 보세요`):`별을 끌어 두 시선이 배경별의 어디에 닿는지 확인하세요`;}
   drawOrbit();}
 function nudgeD(sg){if(S.hidden){if(S.hint){const st=stepOf(sg>0?S.g:S.g-0.001);setG(snapD(S.g+sg*st));}return;}const st=stepOf(sg>0?S.d:S.d-0.001);setD(snapD(S.d+sg*st));}
 $("dMinus").onclick=()=>nudgeD(-1);$("dPlus").onclick=()=>nudgeD(1);
